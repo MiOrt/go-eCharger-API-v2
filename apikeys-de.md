@@ -7,12 +7,12 @@ Deutsch &bull; [English](apikeys-en.md)
 | rfb        | R          | int                          | Status        | Relay Feedback                                                                      |
 | rst        | W          | any                          | Other         | Ladestation neustarten                                                              |
 | alw        | R          | bool                         | Status        | Darf das Auto derzeit laden?                                                        |
-| acu        | R          | int                          | Status        | Mit wie vielen Ampere darf das Auto derzeit laden?                                  |
-| adi        | R          | bool                         | Status        | Wird der 16A Adapter benutzt? Limitiert den Ladestrom auf 16A                       |
-| dwo        | R/W        | optional&lt;double&gt;       | Config        | Lade Energy Limit, gemessen in Wh, null bedeutet deaktiviert, nicht mit der Next-Trip Energie zu verwechseln |
-| tpa        | R          | float                        | Status        | 30 Sekunden Gesamtleistungsdurchschnitt (wird für genauere next-trip vorhersagen berechnet) |
-| sse        | R          | string                       | Constant      | serial number                                                                       |
-| eto        | R          | uint64                       | Status        | energy_total, measured in Wh                                                        |
+| acu        | R          | int                          | Status        | Angebot des Ladestroms (PWM-Signal, mit wie viel A darf das Auto derzeit laden?)                                  |
+| adi        | R          | bool                         | Status        | Wird der 16A Adapter benutzt? Limitiert den Ladestrom bei TRUE auf 16A                       |
+| dwo        | R/W        | optional&lt;double&gt;       | Config        | Limit der Energiemenge (kWh Limit), gemessen in Wh: null bedeutet deaktiviert. Nicht mit der Daily trip Energie zu verwechseln |
+| tpa        | R          | float                        | Status        | 30 Sekunden Gesamtleistungsdurchschnitt (wird für genauere Daily trip vorhersagen berechnet) |
+| sse        | R          | string                       | Constant      | Seriennummer des go-e                                                                       |
+| eto        | R          | uint64                       | Status        | Gesamtenergie bisher, gemessen in Wh                                                        |
 | wifis      | R/W        | array                        | Config        | WiFi Konfiguration mit SSID und Passwort; Wenn man nur den zweiten Eintrag ändern möchte, einfach das erste Objekt leer lassen: `[{}, {"ssid":"","key":""}]` |
 | delw       | W          | uint8                        | Other         | set this to 0-9 to delete sta config (erases ssid, key, ...)                        |
 | scan       | R          | array                        | Status        | wifi scan result (encryptionType: OPEN=0, WEP=1, WPA_PSK=2, WPA2_PSK=3, WPA_WPA2_PSK=4, WPA2_ENTERPRISE=5, WPA3_PSK=6, WPA2_WPA3_PSK=7) |
@@ -38,7 +38,7 @@ Deutsch &bull; [English](apikeys-en.md)
 | led        | R          | object                       | Status        | internal infos about currently running led animation                                |
 | lbr        | R/W        | uint8                        | Config        | led_bright, 0-255                                                                   |
 | lmo        | R/W        | uint8                        | Config        | logic mode (Default=3, Awattar=4, AutomaticStop=5)                                  |
-| ama        | R/W        | uint8                        | Config        | ampere_max limit                                                                    |
+| ama        | R/W        | uint8                        | Config        | Ladestrom max Limit in A                                                                    |
 | clp        | R/W        | array                        | Config        | current limit presets, max. 5 entries                                               |
 | bac        | R/W        | uint8_t                      | Config        | Button allow Current change (0=AlwaysLock, 1=LockWhenCarIsConnected, 2=LockWhenCarIsCharging, 3=NeverLock) |
 | sdp        | R/W        | uint8_t                      | Config        | Button Allow Force change (0=AlwaysLock, 1=LockWhenCarIsConnected, 2=LockWhenCarIsCharging, 3=NeverLock) |
@@ -60,15 +60,15 @@ Deutsch &bull; [English](apikeys-en.md)
 | del        | W          | uint8                        | Other         | set this to 0-9 to clear card (erases card name, energy and rfid id)                |
 | acs        | R/W        | uint8                        | Config        | access_control user setting (Open=0, Wait=1)                                        |
 | frc        | R/W        | uint8                        | Config        | forceState (Neutral=0, Off=1, On=2)                                                 |
-| rbc        | R          | uint32                       | Status        | reboot_counter                                                                      |
-| rbt        | R          | milliseconds                 | Status        | time since boot in milliseconds                                                     |
-| car        | R          | optional&lt;uint8&gt;        | Status        | carState, null if internal error (Unknown/Error=0, Idle=1, Charging=2, WaitCar=3, Complete=4, Error=5) |
-| err        | R          | optional&lt;uint8&gt;        | Status        | error, null if internal error (None = 0, FiAc = 1, FiDc = 2, Phase = 3, Overvolt = 4, Overamp = 5, Diode = 6, PpInvalid = 7, GndInvalid = 8, ContactorStuck = 9, ContactorMiss = 10, FiUnknown = 11, Unknown = 12, Overtemp = 13, NoComm = 14, StatusLockStuckOpen = 15, StatusLockStuckLocked = 16, Reserved20 = 20, Reserved21 = 21, Reserved22 = 22, Reserved23 = 23, Reserved24 = 24) |
-| cbl        | R          | optional&lt;int&gt;          | Status        | cable_current_limit in A                                                            |
-| pha        | R          | optional&lt;array&gt;        | Status        | phases                                                                              |
-| wh         | R          | double                       | Status        | energy in Wh since car connected                                                    |
+| rbc        | R          | uint32                       | Status        | Neustart-Zähler                                                                      |
+| rbt        | R          | milliseconds                 | Status        | Zeit seit Neustart in Millisekunden                                                     |
+| car        | R          | optional&lt;uint8&gt;        | Status        | EV-Status, Null bei internem Fehler (Unknown/Error=0, Idle=1, Charging=2, WaitCar=3, Complete=4, Error=5) |
+| err        | R          | optional&lt;uint8&gt;        | Status        | Gerätefehler, Null bei internem Fehler (None = 0, FiAc = 1, FiDc = 2, Phase = 3, Overvolt = 4, Overamp = 5, Diode = 6, PpInvalid = 7, GndInvalid = 8, ContactorStuck = 9, ContactorMiss = 10, FiUnknown = 11, Unknown = 12, Overtemp = 13, NoComm = 14, StatusLockStuckOpen = 15, StatusLockStuckLocked = 16, Reserved20 = 20, Reserved21 = 21, Reserved22 = 22, Reserved23 = 23, Reserved24 = 24) |
+| cbl        | R          | optional&lt;int&gt;          | Status        | Stromlimit des angeschlossenen Ladekabels in A                                                            |
+| pha        | R          | optional&lt;array&gt;        | Status        | Anzahl genutzter Phasen                                                                              |
+| wh         | R          | double                       | Status        | geladene Energie in Wh seit Anschluss des EV                                                    |
 | trx        | R/W        | optional&lt;uint8&gt;        | Status        | transaction, null when no transaction, 0 when without card, otherwise cardIndex + 1 (1: 0. card, 2: 1. card, ...) |
-| fwv        | R          | string                       | Constant      | FW_VERSION                                                                          |
+| fwv        | R          | string                       | Constant      | Firmware-Version                                                                          |
 | ccu        | R          | optional&lt;object&gt;       | Status        | charge controller update progress (null if no update is in progress)                |
 | oem        | R          | string                       | Constant      | OEM manufacturer                                                                    |
 | typ        | R          | string                       | Constant      | Devicetype                                                                          |
